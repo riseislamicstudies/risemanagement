@@ -42,7 +42,7 @@ input[name=due]{flex:1 1 140px;min-width:0}
 #chips{display:flex;gap:6px;padding:0 16px 8px;overflow-x:auto}#chips:empty{display:none}
 .chip{white-space:nowrap;padding:5px 12px;border-radius:999px;cursor:pointer}
 .chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
-#ov,#rv,#iw,#dp,#me{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;z-index:5}
+#ov,#rv,#iw,#dp,#me,#pn{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;z-index:5}
 #ov[hidden],#rv[hidden]{display:none}
 .sheet textarea{font:inherit;color:var(--text);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 12px;width:100%}
 .sheet{background:var(--bg);width:100%;max-width:520px;max-height:90%;overflow:auto;border-radius:16px 16px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px}
@@ -54,12 +54,22 @@ input[type=checkbox]{padding:0;width:auto}
 .cm small{color:var(--mute);display:block}
 #msg{z-index:50;position:fixed;inset-inline:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--text);color:var(--bg);padding:10px 14px;border-radius:10px;display:none;font-size:14px}
 #au,#jn{position:fixed;inset:0;background:var(--bg);z-index:30;display:flex;align-items:center;justify-content:center;padding:16px}
-#au[hidden],#jn[hidden],#iw[hidden],#dp[hidden],#me[hidden]{display:none}
+#au[hidden],#jn[hidden],#iw[hidden],#dp[hidden],#me[hidden],#pn[hidden]{display:none}
 #au .sheet,#jn .sheet{border-radius:16px;max-width:380px}
 button:disabled{opacity:.6;cursor:wait}
 #am{min-height:1.6em}#am.err{color:var(--hi)}#am.ok{color:var(--accent)}
 #lo,#iv{margin-top:6px;margin-inline-end:6px;padding:3px 10px;font-size:13px}
 #dp{z-index:10}
+#pn{z-index:40}
+select[name=who]{flex:1 1 120px;min-width:0}
+input[type=range]{padding:0}
+.card:hover{border-color:var(--accent)}
+.pb{height:6px;background:var(--line);border-radius:3px;margin-top:6px;overflow:hidden}
+.pb i{display:block;height:100%;background:var(--accent)}
+.sw{display:flex;gap:8px;flex-wrap:wrap}
+.sw button{width:28px;height:28px;border-radius:50%;padding:0;border:2px solid var(--line);color:var(--mute)}
+.sw button.on{outline:2px solid var(--text);outline-offset:2px}
+.ver{font-size:10px;color:var(--mute);text-align:center;width:100%;opacity:.7}
 #tabs{display:flex;gap:6px;padding:0 16px 8px}
 #mv{padding:4px 16px 24px}#mlist{margin-top:10px}
 .fg{display:flex;flex-wrap:wrap;gap:8px}
@@ -99,7 +109,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 <form id="f">
   <input name="title" placeholder="عنوان کار جدید" required maxlength="200">
   <input name="proj" placeholder="پروژه" list="pl" maxlength="60">
-  <input name="who" placeholder="مسئول" maxlength="60">
+  <select name="who" aria-label="مسئول"></select>
   <select name="pr"><option value="mid">اولویت متوسط</option><option value="high">اولویت بالا</option><option value="low">اولویت پایین</option></select>
   <input name="due" inputmode="numeric" placeholder="ددلاین: ۱۴۰۵/۰۸/۱۵" aria-label="ددلاین شمسی" maxlength="10" autocomplete="off">
   <button class="add" type="submit">افزودن</button>
@@ -109,13 +119,15 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 <main class="cols" id="cols"></main>
 <section id="mv" hidden><button class="add" type="button" id="mnew">+ صورتجلسه جدید</button><div id="mlist"></div></section>
 <div id="me" hidden><div class="sheet"><h3 id="mt"></h3><div id="mfa" class="fg"></div><h3>مصوبات</h3><div id="rl"></div><button type="button" id="ma">+ افزودن مصوبه</button><div class="sub">بعد از «نهایی کردن»، هر مصوبه خودکار به‌صورت یک کار در برد ثبت می‌شود.</div><div id="mfb" class="fg"></div><div id="mn" class="sub"></div><div class="mbt"><button type="button" id="ms">ذخیره پیش‌نویس</button><button class="add" type="button" id="mz">نهایی کردن و ساخت کارها</button><button type="button" id="md">حذف</button><button type="button" id="mx">بستن</button></div></div></div>
+<div id="pn" hidden><div class="sheet"><h3>نام تو</h3><div class="sub">این نام در فهرست اعضا و انتخاب مسئول کارها نمایش داده می‌شود.</div><input id="pnm" maxlength="60" placeholder="نام و نام‌خانوادگی"><div style="display:flex;gap:8px"><button class="add" type="button" id="pns">ذخیره</button><button type="button" id="pnx">بستن</button></div></div></div>
 <div id="ov" hidden><div class="sheet">
   <form id="ef">
     <input name="title" placeholder="عنوان" required maxlength="200">
     <input name="proj" placeholder="پروژه" list="pl" maxlength="60">
-    <input name="who" placeholder="مسئول" maxlength="60">
+    <select name="who" aria-label="مسئول"></select>
     <select name="pr"><option value="mid">اولویت متوسط</option><option value="high">اولویت بالا</option><option value="low">اولویت پایین</option></select>
     <input name="due" inputmode="numeric" placeholder="ددلاین: ۱۴۰۵/۰۸/۱۵" aria-label="ددلاین شمسی" maxlength="10" autocomplete="off">
+    <div id="sw" class="sw" style="flex:1 1 100%"></div><label class="fld w"><span>پیشرفت: <b id="pv">۰٪</b></span><input type="range" name="prog" min="0" max="100" step="5" value="0"></label><button type="button" id="pk">محاسبه از چک‌لیست</button>
     <button class="add" type="submit">ذخیره</button>
     <button type="button" id="cx">بستن</button>
   </form>
@@ -133,16 +145,16 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
   <textarea id="ta" rows="6" dir="auto"></textarea>
   <div style="display:flex;gap:8px"><button class="add" type="button" id="go">بازیابی از متن</button><button type="button" id="rx">بستن</button></div>
 </div></div>
-<div id="au" hidden><form id="af" class="sheet"><h1>رایزنگار</h1><div class="sub">برای ورود یا ساخت حساب، ایمیل و رمز بنویس.</div><input name="em" type="email" placeholder="ایمیل" required autocomplete="email" dir="ltr"><input name="pw" type="password" placeholder="رمز (حداقل ۶ نویسه)" required minlength="6" autocomplete="current-password" dir="ltr"><div id="am" class="sub" role="status" aria-live="polite"></div><div style="display:flex;gap:8px"><button class="add" id="si" type="submit">ورود</button><button type="button" id="su">ثبت‌نام</button></div></form></div>
+<div id="au" hidden><form id="af" class="sheet"><h1>رایزنگار</h1><div class="sub">برای ورود یا ساخت حساب، ایمیل و رمز بنویس.</div><input name="nm" placeholder="نام و نام‌خانوادگی (برای ثبت‌نام)" maxlength="60" autocomplete="name"><input name="em" type="email" placeholder="ایمیل" required autocomplete="email" dir="ltr"><input name="pw" type="password" placeholder="رمز (حداقل ۶ نویسه)" required minlength="6" autocomplete="current-password" dir="ltr"><div id="am" class="sub" role="status" aria-live="polite"></div><div style="display:flex;gap:8px"><button class="add" id="si" type="submit">ورود</button><button type="button" id="su">ثبت‌نام</button></div><div class="ver" dir="ltr">v1.0 · 2026-10-20</div></form></div>
 <div id="jn" hidden><div class="sheet"><h3>هنوز عضو تیمی نیستی</h3><div class="sub">کد یا لینک دعوت داری؟ اینجا بچسبان:</div><input id="jc" dir="ltr" placeholder="لینک یا کد دعوت"><button class="add" type="button" id="jb">پیوستن به تیم</button><div class="sub">یا یک تیم جدید بساز:</div><input id="wn" placeholder="اسم تیم" maxlength="60"><button type="button" id="wb">ساخت تیم</button></div></div>
-<div id="iw" hidden><div class="sheet"><h3>اعضای تیم</h3><div id="ml"></div><h3>دعوت هم‌تیمی</h3><div class="sub">لینک را برای هم‌تیمی بفرست. با ثبت‌نام یا ورود از طریق آن عضو می‌شود. لینک ۱۴ روز اعتبار دارد.</div><input id="il" readonly dir="ltr" placeholder="ابتدا لینک بساز"><div style="display:flex;gap:8px"><button class="add" id="ib" type="button">ساخت لینک دعوت</button><button id="ic" type="button">کپی</button><button id="ix" type="button">بستن</button></div></div></div>
+<div id="iw" hidden><div class="sheet"><div class="sub">نام تو: <b id="mynm"></b> <button type="button" id="rn">تغییر نام</button></div><h3>اعضای تیم</h3><div id="ml"></div><h3>دعوت هم‌تیمی</h3><div class="sub">لینک را برای هم‌تیمی بفرست. با ثبت‌نام یا ورود از طریق آن عضو می‌شود. لینک ۱۴ روز اعتبار دارد.</div><input id="il" readonly dir="ltr" placeholder="ابتدا لینک بساز"><div style="display:flex;gap:8px"><button class="add" id="ib" type="button">ساخت لینک دعوت</button><button id="ic" type="button">کپی</button><button id="ix" type="button">بستن</button></div></div></div>
 <div id="dp" hidden><div class="sheet"><div class="dh"><button type="button" id="dpp" aria-label="ماه قبل">→</button><b id="dpt"></b><button type="button" id="dpn" aria-label="ماه بعد">←</button></div><div class="dw"><span>ش</span><span>ی</span><span>د</span><span>س</span><span>چ</span><span>پ</span><span>ج</span></div><div id="dpg" class="dg"></div><div style="display:flex;gap:8px"><button type="button" id="dpd">امروز</button><button type="button" id="dpc">پاک کردن</button><button type="button" id="dpx">بستن</button></div></div></div>
 <datalist id="pl"></datalist>
 <div id="msg"></div>
 <script>
 var COLS=[["todo","برای انجام"],["doing","در حال انجام"],["done","انجام‌شده"]];
 var PR={high:"بالا",mid:"متوسط",low:"پایین"};
-var db=null,tasks=[];
+var db=null,tasks=[],mem=[],meId=null,myName="",selColor="";
 function $(s){return document.querySelector(s)}
 function toast(t){var m=$("#msg");m.textContent=t;m.style.display="block";setTimeout(function(){m.style.display="none"},3000)}
 function fa(n){return String(n).replace(/\d/g,function(d){return "۰۱۲۳۴۵۶۷۸۹"[d]})}
@@ -155,7 +167,7 @@ function render(){
     var n=document.createElement("span");n.className="n";n.textContent=fa(list.length);h.appendChild(n);col.appendChild(h);
     if(!list.length){var e=document.createElement("div");e.className="empty";e.textContent="خالی";col.appendChild(e)}
     list.forEach(function(t){
-      var d=document.createElement("div");d.className="card";d.draggable=true;d.ondragstart=function(e){e.dataTransfer.setData("text/plain",t.id)};
+      var d=document.createElement("div");d.className="card";d.draggable=true;d.ondragstart=function(e){e.dataTransfer.setData("text/plain",t.id)};d.style.cursor="pointer";d.onclick=function(){openT(t.id)};if(t.color)d.style.borderInlineStart="5px solid "+t.color;
       var tt=document.createElement("div");tt.className="t";tt.textContent=t.title;d.appendChild(tt);
       var m=document.createElement("div");m.className="meta";
       var p=document.createElement("span");p.className="p "+t.pr;p.textContent=PR[t.pr]||"";m.appendChild(p);
@@ -165,10 +177,11 @@ function render(){
       if(t.comments&&t.comments.length){var cc=document.createElement("span");cc.textContent="💬 "+fa(t.comments.length);m.appendChild(cc)}
       if(t.checks&&t.checks.length){var ck2=document.createElement("span");ck2.textContent="☑ "+fa(t.checks.filter(function(k){return k.d}).length)+"/"+fa(t.checks.length);m.appendChild(ck2)}
       d.appendChild(m);
+      if(t.progress>0){var pb=document.createElement("div");pb.className="pb";var pi=document.createElement("i");pi.style.width=t.progress+"%";pb.appendChild(pi);d.appendChild(pb);var pt=document.createElement("span");pt.textContent=fa(t.progress)+"٪";m.appendChild(pt)}
       var a=document.createElement("div");a.className="acts";
       if(ci>0)a.appendChild(btn("→",function(){move(t,COLS[ci-1][0])}));
       if(ci<COLS.length-1)a.appendChild(btn("←",function(){move(t,COLS[ci+1][0])}));
-      a.appendChild(btn("ویرایش · کامنت",function(){openT(t.id)}));var x=btn("حذف",function(){if(x.dataset.sure){act(db.doc("tasks/"+t.id).delete())}else{x.dataset.sure="1";x.textContent="مطمئنی؟";setTimeout(function(){x.dataset.sure="";x.textContent="حذف"},3000)}});x.className="del";a.appendChild(x);
+      var x=btn("حذف",function(){if(x.dataset.sure){act(db.doc("tasks/"+t.id).delete())}else{x.dataset.sure="1";x.textContent="مطمئنی؟";setTimeout(function(){x.dataset.sure="";x.textContent="حذف"},3000)}});x.className="del";a.appendChild(x);
       d.appendChild(a);col.appendChild(d);
     });
     root.appendChild(col);
@@ -183,9 +196,9 @@ function today(){var d=new Date();return new Date(d.getTime()-d.getTimezoneOffse
 function dueTxt(s){try{return new Date(s+"T12:00:00").toLocaleDateString("fa-IR-u-ca-persian",{month:"long",day:"numeric"})}catch(e){return s}}
 var cur=null,curP="",curQ="",curW="",curS="";
 function cmp(a,b){if(curS==="due"){var x=a.due||"9",y=b.due||"9";return x<y?-1:x>y?1:0}if(curS==="pr"){var o={high:0,mid:1,low:2};return(a.pr in o?o[a.pr]:1)-(b.pr in o?o[b.pr]:1)}return 0}
-function chips(){var ps=[];tasks.forEach(function(t){if(t.proj&&ps.indexOf(t.proj)<0)ps.push(t.proj)});if(curP&&ps.indexOf(curP)<0)curP="";var n=$("#chips");n.textContent="";if(ps.length)[""].concat(ps).forEach(function(p){var b=document.createElement("button");b.type="button";b.className="chip"+(p===curP?" on":"");b.textContent=p||"همه";b.onclick=function(){curP=p;render()};n.appendChild(b)});var ws=[];tasks.forEach(function(t){if(t.who&&ws.indexOf(t.who)<0)ws.push(t.who)});if(curW&&ws.indexOf(curW)<0)curW="";var sel=$("#wf");sel.textContent="";[""].concat(ws).forEach(function(w){var o=document.createElement("option");o.value=w;o.textContent=w||"همه مسئول‌ها";sel.appendChild(o)});sel.value=curW;var dl=$("#pl");dl.textContent="";ps.forEach(function(p){var o=document.createElement("option");o.value=p;dl.appendChild(o)})}
+function chips(){var ps=[];tasks.forEach(function(t){if(t.proj&&ps.indexOf(t.proj)<0)ps.push(t.proj)});if(curP&&ps.indexOf(curP)<0)curP="";var n=$("#chips");n.textContent="";if(ps.length)[""].concat(ps).forEach(function(p){var b=document.createElement("button");b.type="button";b.className="chip"+(p===curP?" on":"");b.textContent=p||"همه";b.onclick=function(){curP=p;render()};n.appendChild(b)});var ws=mem.slice();tasks.forEach(function(t){if(t.who&&ws.indexOf(t.who)<0)ws.push(t.who)});if(curW&&ws.indexOf(curW)<0)curW="";var sel=$("#wf");sel.textContent="";[""].concat(ws).forEach(function(w){var o=document.createElement("option");o.value=w;o.textContent=w||"همه مسئول‌ها";sel.appendChild(o)});sel.value=curW;var dl=$("#pl");dl.textContent="";ps.forEach(function(p){var o=document.createElement("option");o.value=p;dl.appendChild(o)})}
 function T(id){return tasks.find(function(x){return x.id===id})}
-function openT(id){var t=T(id);if(!t)return;cur=id;var f=$("#ef");f.title.value=t.title||"";f.who.value=t.who||"";f.proj.value=t.proj||"";f.pr.value=t.pr||"mid";f.due.value=iso2j(t.due);fillC();$("#ov").hidden=false}
+function openT(id){var t=T(id);if(!t)return;cur=id;var f=$("#ef");f.elements.title.value=t.title||"";fillWho(f.elements.who,t.who||"");f.elements.proj.value=t.proj||"";selColor=t.color||"";drawSw();var pg=f.querySelector("[name=prog]");pg.value=t.progress||0;$("#pv").textContent=fa(pg.value)+"٪";f.elements.pr.value=t.pr||"mid";f.elements.due.value=iso2j(t.due);fillC();$("#ov").hidden=false}
 function closeT(){cur=null;$("#ov").hidden=true}
 function fillC(){var t=T(cur);if(!t){closeT();return}fillK(t);var l=$("#cl");l.textContent="";var cs=t.comments||[];if(!cs.length){var e=document.createElement("div");e.className="empty";e.textContent="هنوز کامنتی نیست";l.appendChild(e)}cs.forEach(function(c){var d=document.createElement("div");d.className="cm";var s=document.createElement("small");try{s.textContent=new Date(c.at).toLocaleString("fa-IR-u-ca-persian",{month:"long",day:"numeric",hour:"2-digit",minute:"2-digit"})}catch(x){}d.appendChild(s);d.appendChild(document.createTextNode(c.text));l.appendChild(d)})}
 function fillK(t){var l=$("#kl");l.textContent="";(t.checks||[]).forEach(function(k,i){var d=document.createElement("label");d.className="cm";d.style.display="flex";d.style.gap="8px";d.style.alignItems="center";var c=document.createElement("input");c.type="checkbox";c.checked=!!k.d;c.onchange=function(){act(db.doc("tasks/"+cur).set(body(t,{checks:(t.checks||[]).map(function(x,j){return j===i?{t:x.t,d:c.checked}:x})})))};var s=document.createElement("span");s.textContent=k.t;if(k.d)s.style.textDecoration="line-through";var x=document.createElement("button");x.type="button";x.textContent="×";x.style.marginInlineStart="auto";x.onclick=function(ev){ev.preventDefault();act(db.doc("tasks/"+cur).set(body(t,{checks:(t.checks||[]).filter(function(y,j){return j!==i})})))};d.appendChild(c);d.appendChild(s);d.appendChild(x);l.appendChild(d)})}
@@ -199,29 +212,29 @@ $("#im").onclick=function(){$("#rv").hidden=false};
 $("#rx").onclick=function(){$("#rv").hidden=true};
 $("#rv").onclick=function(e){if(e.target===this)this.hidden=true};
 $("#go").onclick=function(){doImport($("#ta").value)};
-async function doImport(text){if(!db){toast("اتصال به پایگاه داده برقرار نیست؛ شاید باید وارد حساب شده باشی");return}var rows=parseCSV(text);rows.shift();if(!rows.length){toast("ردیفی پیدا نشد");return}var pr={},sr={},have={},n=0,sk=0;Object.keys(PR).forEach(function(k){pr[PR[k]]=k});COLS.forEach(function(c){sr[c[1]]=c[0]});tasks.forEach(function(t){have[(t.title||"")+"|"+(t.proj||"")]=1});for(var i=0;i<rows.length;i++){var r=rows[i],title=(r[0]||"").trim();if(!title)continue;if(have[title+"|"+(r[1]||"")]){sk++;continue}have[title+"|"+(r[1]||"")]=1;var ck=(r[7]||"").split(" | ").filter(Boolean).map(function(x){return{t:x.slice(1),d:x[0]==="+"}});var cm=(r[6]||"").split(" | ").filter(Boolean).map(function(x){return{text:x,at:Date.now()}});try{await db.doc("tasks/t"+Date.now().toString(36)+i.toString(36)+Math.random().toString(36).slice(2,5)).set({title:title,proj:r[1]||"",who:r[2]||"",pr:pr[r[3]]||"mid",status:sr[r[4]]||"todo",due:j2iso(r[5])||"",comments:cm,checks:ck,createdAt:Date.now()+i});n++}catch(e){toast("خطا در بازیابی: "+((e&&e.code)||""));break}}toast(fa(n)+" کار بازیابی شد"+(sk?"، "+fa(sk)+" کار تکراری رد شد":""));$("#rv").hidden=true;$("#ta").value=""}
+async function doImport(text){if(!db){toast("اتصال به پایگاه داده برقرار نیست؛ شاید باید وارد حساب شده باشی");return}var rows=parseCSV(text);rows.shift();if(!rows.length){toast("ردیفی پیدا نشد");return}var pr={},sr={},have={},n=0,sk=0;Object.keys(PR).forEach(function(k){pr[PR[k]]=k});COLS.forEach(function(c){sr[c[1]]=c[0]});tasks.forEach(function(t){have[(t.title||"")+"|"+(t.proj||"")]=1});for(var i=0;i<rows.length;i++){var r=rows[i],title=(r[0]||"").trim();if(!title)continue;if(have[title+"|"+(r[1]||"")]){sk++;continue}have[title+"|"+(r[1]||"")]=1;var ck=(r[7]||"").split(" | ").filter(Boolean).map(function(x){return{t:x.slice(1),d:x[0]==="+"}});var cm=(r[6]||"").split(" | ").filter(Boolean).map(function(x){return{text:x,at:Date.now()}});try{await db.doc("tasks/t"+Date.now().toString(36)+i.toString(36)+Math.random().toString(36).slice(2,5)).set({title:title,proj:r[1]||"",who:r[2]||"",pr:pr[r[3]]||"mid",status:sr[r[4]]||"todo",due:j2iso(r[5])||"",comments:cm,checks:ck,color:r[8]||"",progress:Math.max(0,Math.min(100,+r[9]||0)),createdAt:Date.now()+i});n++}catch(e){toast("خطا در بازیابی: "+((e&&e.code)||""));break}}toast(fa(n)+" کار بازیابی شد"+(sk?"، "+fa(sk)+" کار تکراری رد شد":""));$("#rv").hidden=true;$("#ta").value=""}
 $("#fi").onchange=async function(){var file=this.files[0];this.value="";if(!file)return;var rd=new FileReader();rd.onload=function(){doImport(String(rd.result))};rd.onerror=function(){toast("خواندن فایل نشد، متن را بچسبان")};rd.readAsText(file)};
-$("#ex").onclick=async function(){var d=null;try{d=await window.claude.use("downloads")}catch(e){}if(!d){toast("خروجی گرفتن در دسترس نیست");return}var Q=function(s){return '"'+String(s==null?"":s).replace(/"/g,'""')+'"'};var st={};COLS.forEach(function(c){st[c[0]]=c[1]});var rows=[["عنوان","پروژه","مسئول","اولویت","وضعیت","ددلاین","کامنت‌ها"]];rows[0].push("چک‌لیست");tasks.forEach(function(t){rows.push([t.title,t.proj,t.who,PR[t.pr],st[t.status],iso2j(t.due),(t.comments||[]).map(function(c){return c.text}).join(" | "),(t.checks||[]).map(function(k){return(k.d?"+":"-")+k.t}).join(" | ")])});var csv="\ufeff"+rows.map(function(r){return r.map(Q).join(",")}).join("\r\n");try{await d.save({filename:"tasks-"+today()+".csv",data:csv})}catch(e){}};
+$("#ex").onclick=async function(){var d=null;try{d=await window.claude.use("downloads")}catch(e){}if(!d){toast("خروجی گرفتن در دسترس نیست");return}var Q=function(s){return '"'+String(s==null?"":s).replace(/"/g,'""')+'"'};var st={};COLS.forEach(function(c){st[c[0]]=c[1]});var rows=[["عنوان","پروژه","مسئول","اولویت","وضعیت","ددلاین","کامنت‌ها"]];rows[0].push("چک‌لیست","رنگ","درصد پیشرفت");tasks.forEach(function(t){rows.push([t.title,t.proj,t.who,PR[t.pr],st[t.status],iso2j(t.due),(t.comments||[]).map(function(c){return c.text}).join(" | "),(t.checks||[]).map(function(k){return(k.d?"+":"-")+k.t}).join(" | "),t.color||"",t.progress||0])});var csv="\ufeff"+rows.map(function(r){return r.map(Q).join(",")}).join("\r\n");try{await d.save({filename:"tasks-"+today()+".csv",data:csv})}catch(e){}};
 $("#ov").onclick=function(e){if(e.target===this)closeT()};
-$("#ef").onsubmit=function(e){e.preventDefault();var t=T(cur);if(!t)return;var f=e.target,dv=j2iso(f.due.value);if(dv===null){toast("تاریخ را مثل ۱۴۰۵/۰۸/۱۵ بنویس");return}act(db.doc("tasks/"+cur).set(body(t,{title:f.title.value.trim(),who:f.who.value.trim(),pr:f.pr.value,due:dv,proj:f.proj.value.trim()})));closeT()};
+$("#ef").onsubmit=function(e){e.preventDefault();var t=T(cur);if(!t)return;var f=e.target,dv=j2iso(f.elements.due.value);if(dv===null){toast("تاریخ را مثل ۱۴۰۵/۰۸/۱۵ بنویس");return}act(db.doc("tasks/"+cur).set(body(t,{title:f.elements.title.value.trim(),who:f.elements.who.value.trim(),pr:f.elements.pr.value,due:dv,proj:f.elements.proj.value.trim(),color:selColor,progress:+f.querySelector("[name=prog]").value})));closeT()};
 $("#cf").onsubmit=function(e){e.preventDefault();var t=T(cur),i=$("#ci"),v=i.value.trim();if(!t||!v)return;act(db.doc("tasks/"+cur).set(body(t,{comments:(t.comments||[]).concat([{text:v,at:Date.now()}])})));i.value=""};
-function btn(t,fn){var b=document.createElement("button");b.type="button";b.textContent=t;b.onclick=fn;return b}
+function btn(t,fn){var b=document.createElement("button");b.type="button";b.textContent=t;b.onclick=function(e){e.stopPropagation();fn()};return b}
 function act(p){return p.catch(function(e){toast("ذخیره نشد: "+((e&&(e.code||e.message))||"خطای نامشخص"))})}
 function body(t,over){var o=Object.assign({},t);delete o.id;return Object.assign(o,over)}
-function move(t,s){act(db.doc("tasks/"+t.id).set(body(t,{status:s})))}
+function move(t,s){act(db.doc("tasks/"+t.id).set(body(t,s==="done"?{status:s,progress:100}:{status:s})))}
 $("#f").onsubmit=function(e){
   e.preventDefault();
   if(!db){toast("هنوز به پایگاه داده وصل نیست.");return}
-  var f=e.target,dv=j2iso(f.due.value);if(dv===null){toast("تاریخ را مثل ۱۴۰۵/۰۸/۱۵ بنویس");return}var id="t"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
-  act(db.doc("tasks/"+id).set({title:f.title.value.trim(),who:f.who.value.trim(),pr:f.pr.value,due:dv,proj:f.proj.value.trim()||curP,status:"todo",createdAt:Date.now()}));
-  f.title.value="";f.due.value="";
+  var f=e.target,dv=j2iso(f.elements.due.value);if(dv===null){toast("تاریخ را مثل ۱۴۰۵/۰۸/۱۵ بنویس");return}var id="t"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+  act(db.doc("tasks/"+id).set({title:f.elements.title.value.trim(),who:f.elements.who.value.trim(),pr:f.elements.pr.value,due:dv,proj:f.elements.proj.value.trim()||curP,status:"todo",createdAt:Date.now()}));
+  f.elements.title.value="";f.elements.due.value="";
 };
 render();
 var SB_URL="https://efuihxmykttvwzsnlpod.supabase.co",SB_KEY="sb_publishable_v3nTTWCtAXMnBYbnYZ70LA_hK53DNc0";
 var sb=null,wsId=null,onSnap=null,onErr=null,UU=/^[0-9a-f]{8}-[0-9a-f]{4}-/;
 window.claude={use:async function(){return{save:async function(o){var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([o.data],{type:"text/csv;charset=utf-8"}));a.download=o.filename;document.body.appendChild(a);a.click();a.remove()}}}};
-function frow(r){return{title:r.title,proj:r.project||"",who:r.assignee||"",pr:r.priority,status:r.status,due:r.due||"",comments:r.comments||[],checks:r.checks||[],createdAt:Date.parse(r.created_at)}}
-function trow(o){return{title:o.title,project:o.proj||"",assignee:o.who||"",priority:o.pr||"mid",status:o.status||"todo",due:o.due||null,comments:o.comments||[],checks:o.checks||[]}}
+function frow(r){return{title:r.title,proj:r.project||"",who:r.assignee||"",pr:r.priority,status:r.status,due:r.due||"",comments:r.comments||[],checks:r.checks||[],color:r.color||"",progress:r.progress||0,createdAt:Date.parse(r.created_at)}}
+function trow(o){return{title:o.title,project:o.proj||"",assignee:o.who||"",priority:o.pr||"mid",status:o.status||"todo",due:o.due||null,comments:o.comments||[],checks:o.checks||[],color:o.color||"",progress:Math.max(0,Math.min(100,+o.progress||0))}}
 function chk(r,need){if(r.error)throw r.error;if(need&&(!r.data||!r.data.length))throw{code:"no_access"};return r}
 async function reload(){try{var r=chk(await sb.from("tasks").select("*").eq("workspace_id",wsId).order("created_at",{ascending:true}));onSnap({docs:r.data.map(function(x){var o=frow(x);return{id:x.id,data:function(){return o}}})})}catch(e){if(onErr)onErr(e)}}
 db={
@@ -253,7 +266,7 @@ function g(n){return $("#me").querySelector('[name="'+n+'"]')}
 function hookDP(i){i.readOnly=true;i.onclick=function(){openDP(i)}}
 function fld(f){var l=document.createElement("label");l.className="fld"+(f[3]?" w":"");var s=document.createElement("span");s.textContent=f[1];var e=document.createElement(f[2]==="a"?"textarea":"input");e.name=f[0];if(f[2]==="t")e.type="time";if(f[2]==="d"){e.placeholder="انتخاب تاریخ";hookDP(e)}if(f[2]==="a")e.rows=3;else e.maxLength=200;l.appendChild(s);l.appendChild(e);return l}
 FA.forEach(function(f){$("#mfa").appendChild(fld(f))});FB.forEach(function(f){$("#mfb").appendChild(fld(f))});
-function rrow(r){var d=document.createElement("div");d.className="rr";var t=document.createElement("input");t.name="t";t.placeholder="متن مصوبه";t.value=r.text||"";t.maxLength=300;var w=document.createElement("input");w.name="w";w.placeholder="مسئول پیگیری";w.value=r.who||"";w.maxLength=60;var u=document.createElement("input");u.name="u";u.placeholder="مهلت اجرا";u.value=iso2j(r.due||"");hookDP(u);var p=document.createElement("select");p.name="p";[["mid","متوسط"],["high","بالا"],["low","پایین"]].forEach(function(o){var op=document.createElement("option");op.value=o[0];op.textContent="اولویت "+o[1];p.appendChild(op)});p.value=r.pr||"mid";var x=document.createElement("button");x.type="button";x.textContent="×";x.onclick=function(){d.remove()};[t,w,u,p].forEach(function(e){d.appendChild(e);e.disabled=mFinal});d.appendChild(x);x.hidden=mFinal;return d}
+function rrow(r){var d=document.createElement("div");d.className="rr";var t=document.createElement("input");t.name="t";t.placeholder="متن مصوبه";t.value=r.text||"";t.maxLength=300;var w=document.createElement("select");w.name="w";fillWho(w,r.who||"");var u=document.createElement("input");u.name="u";u.placeholder="مهلت اجرا";u.value=iso2j(r.due||"");hookDP(u);var p=document.createElement("select");p.name="p";[["mid","متوسط"],["high","بالا"],["low","پایین"]].forEach(function(o){var op=document.createElement("option");op.value=o[0];op.textContent="اولویت "+o[1];p.appendChild(op)});p.value=r.pr||"mid";var x=document.createElement("button");x.type="button";x.textContent="×";x.onclick=function(){d.remove()};[t,w,u,p].forEach(function(e){d.appendChild(e);e.disabled=mFinal});d.appendChild(x);x.hidden=mFinal;return d}
 function drawRes(l){var b=$("#rl");b.textContent="";l.forEach(function(r){b.appendChild(rrow(r))})}
 function getRes(){return Array.prototype.map.call($("#rl").children,function(d){var q=function(n){return d.querySelector('[name="'+n+'"]')};return{text:q("t").value.trim(),who:q("w").value.trim(),due:j2iso(q("u").value)||"",pr:q("p").value}}).filter(function(r){return r.text})}
 function openM(m){
@@ -291,16 +304,31 @@ $("#mz").onclick=function(){var b=this;two(b,"نهایی کردن و ساخت ک
 $("#md").onclick=function(){var b=this;two(b,"حذف",async function(){var r=await sb.from("meetings").delete().eq("id",mCur).select("id");if(r.error||!r.data.length)toast("حذف نشد");else{closeM();loadMeetings()}})};
 function setView(v){var b=v==="b";["#f","#flt","#chips","#cols"].forEach(function(s){$(s).style.display=b?"":"none"});$("#mv").hidden=b;document.querySelectorAll("#tabs .chip").forEach(function(c){c.classList.toggle("on",c.dataset.v===v)});if(!b)loadMeetings()}
 document.querySelectorAll("#tabs .chip").forEach(function(c){c.onclick=function(){setView(c.dataset.v)}});
+function fillWho(sel,cur){var v=cur===undefined?sel.value:cur,l=mem.slice();if(v&&l.indexOf(v)<0)l.push(v);sel.textContent="";var o0=document.createElement("option");o0.value="";o0.textContent="بدون مسئول";sel.appendChild(o0);l.forEach(function(n){var o=document.createElement("option");o.value=n;o.textContent=n;sel.appendChild(o)});sel.value=v||""}
+fillWho(document.querySelector("#f [name=who]"));
+async function loadMem(){var r=await sb.rpc("list_members",{ws:wsId});if(r.error)return;mem=r.data.map(function(m){return m.name}).filter(Boolean);fillWho(document.querySelector("#f [name=who]"));chips()}
+var COLORS=[["","بدون رنگ"],["#dc2626","قرمز"],["#ea580c","نارنجی"],["#ca8a04","زرد"],["#16a34a","سبز"],["#2563eb","آبی"],["#9333ea","بنفش"]];
+function drawSw(){var b=$("#sw");b.textContent="";COLORS.forEach(function(c){var x=document.createElement("button");x.type="button";x.title=c[1];x.setAttribute("aria-label",c[1]);if(c[0])x.style.background=c[0];else x.textContent="✕";if(c[0]===selColor)x.className="on";x.onclick=function(){selColor=c[0];drawSw()};b.appendChild(x)})}
+var pgi=$("#ef").querySelector("[name=prog]");
+pgi.oninput=function(){$("#pv").textContent=fa(pgi.value)+"٪"};
+$("#pk").onclick=function(){var t=T(cur),c=(t&&t.checks)||[];if(!c.length){toast("این کار چک‌لیست ندارد");return}pgi.value=Math.round(100*c.filter(function(k){return k.d}).length/c.length);pgi.oninput()};
+var pnRes=null;
+function askName(must){return new Promise(function(res){pnRes=res;$("#pnm").value=myName||"";$("#pnx").hidden=!!must;$("#pn").hidden=false})}
+$("#pns").onclick=async function(){var v=$("#pnm").value.trim();if(!v){toast("نام را بنویس");return}var b=this;b.disabled=true;var r=await sb.from("profiles").upsert({user_id:meId,name:v});b.disabled=false;if(r.error){toast("ذخیره نشد: "+r.error.message);return}myName=v;$("#pn").hidden=true;if(pnRes){pnRes(v);pnRes=null}};
+$("#pnx").onclick=function(){$("#pn").hidden=true;if(pnRes){pnRes(myName);pnRes=null}};
+$("#rn").onclick=async function(){await askName(false);$("#mynm").textContent=myName;loadMem()};
+async function ensureProfile(){var u=(await sb.auth.getUser()).data.user;meId=u.id;var r=await sb.from("profiles").select("name").eq("user_id",u.id).maybeSingle(),nm=r.data&&r.data.name;if(!nm){nm=(u.user_metadata&&u.user_metadata.name)||"";if(nm)await sb.from("profiles").upsert({user_id:u.id,name:nm})}myName=nm;if(!nm)await askName(true)}
 var pref=null;
 function jcode(){var m=location.search.match(/[?&]join=([0-9a-f]+)/);if(m)return m[1];try{return localStorage.getItem("joinCode")}catch(e){return null}}
 async function loadWs(){var q=sb.from("workspaces").select("id,name");if(pref)q=q.eq("id",pref);var w=chk(await q.order("created_at",{ascending:true}).limit(1));return w.data[0]||null}
 function begin(w){
-  wsId=w.id;$("#iv").hidden=false;$("#st").textContent="ورک‌اسپیس: "+w.name+" · همگام‌سازی زنده فعال است";
+  wsId=w.id;$("#iv").hidden=false;loadMem();$("#st").textContent="ورک‌اسپیس: "+w.name+" · همگام‌سازی زنده فعال است";
   db.collection("tasks").orderBy("createdAt").onSnapshot(function(s){tasks=s.docs.map(function(d){var o=Object.assign({},d.data());o.id=d.id;return o});render();if(cur)fillC()},function(e){toast("خطا: "+(e.message||e.code))});
 }
 async function enter(){
   $("#au").hidden=true;$("#lo").hidden=false;
   try{
+    await ensureProfile();
     var code=jcode();
     if(code){try{var r=chk(await sb.rpc("join_workspace",{p_code:code}));pref=r.data;toast("به تیم پیوستی")}catch(e){toast("کد دعوت نامعتبر یا منقضی است")}try{localStorage.removeItem("joinCode")}catch(e){}history.replaceState(null,"",location.pathname)}
     var w=await loadWs();
@@ -310,7 +338,7 @@ async function enter(){
 }
 $("#jb").onclick=async function(){var v=$("#jc").value.trim(),m=v.match(/join=([0-9a-f]+)/),c=m?m[1]:v;try{var r=chk(await sb.rpc("join_workspace",{p_code:c}));pref=r.data;var w=await loadWs();$("#jn").hidden=true;begin(w)}catch(e){toast("کد نامعتبر یا منقضی است")}};
 $("#wb").onclick=async function(){try{var w=chk(await sb.from("workspaces").insert({name:$("#wn").value.trim()||"تیم من"}).select("id,name"));$("#jn").hidden=true;begin(w.data[0])}catch(e){toast("خطا: "+(e.message||e.code))}};
-$("#iv").onclick=async function(){$("#iw").hidden=false;var l=$("#ml");l.textContent="";var r=await sb.rpc("list_members",{ws:wsId});if(r.error){l.textContent="خطا در خواندن اعضا";return}r.data.forEach(function(m){var d=document.createElement("div");d.className="cm";d.dir="auto";d.textContent=m.email+(m.role==="admin"?" (ادمین)":"");l.appendChild(d)})};
+$("#iv").onclick=async function(){$("#iw").hidden=false;$("#mynm").textContent=myName;var l=$("#ml");l.textContent="";var r=await sb.rpc("list_members",{ws:wsId});if(r.error){l.textContent="خطا در خواندن اعضا";return}r.data.forEach(function(m){var d=document.createElement("div");d.className="cm";d.dir="auto";d.textContent=(m.name||"بدون نام")+" · "+m.email+(m.role==="admin"?" (ادمین)":"");l.appendChild(d)})};
 $("#ib").onclick=async function(){var r=await sb.from("invites").insert({workspace_id:wsId}).select("code");if(r.error||!r.data.length){toast("فقط ادمین می‌تواند دعوت بسازد");return}$("#il").value=location.origin+location.pathname+"?join="+r.data[0].code};
 $("#ic").onclick=function(){var i=$("#il");if(!i.value)return;i.select();try{navigator.clipboard.writeText(i.value)}catch(e){}try{document.execCommand("copy")}catch(e){}toast("کپی شد")};
 $("#ix").onclick=function(){$("#iw").hidden=true};
@@ -319,7 +347,7 @@ function amsg(t,k){var m=$("#am");m.textContent=t;m.className="sub "+(k||"")}
 function fe(e){var m=(e.message||"").toLowerCase();if(m.indexOf("invalid login")>=0)return"ایمیل یا رمز اشتباه است.";if(m.indexOf("already")>=0)return"این ایمیل قبلاً ثبت‌نام کرده؛ با «ورود» وارد شو.";if(m.indexOf("not confirmed")>=0)return"ایمیل هنوز تأیید نشده؛ لینک ایمیل را بزن.";if(m.indexOf("rate")>=0)return"تلاش‌ها زیاد بود؛ چند دقیقه بعد دوباره امتحان کن.";if(m.indexOf("password")>=0)return"رمز باید حداقل ۶ نویسه باشد.";return e.message||"خطای ناشناخته"}
 function busy(on,kind){var si=$("#si"),su=$("#su");si.disabled=su.disabled=on;if(on){amsg(kind==="up"?"در حال ساخت حساب…":"در حال ورود…");(kind==="up"?su:si).textContent="صبر کن…"}else{si.textContent="ورود";su.textContent="ثبت‌نام"}}
 async function auth(kind){
-  var f=$("#af"),c={email:f.em.value.trim(),password:f.pw.value};busy(true,kind);
+  var f=$("#af"),c={email:f.elements.em.value.trim(),password:f.elements.pw.value},nm=f.elements.nm.value.trim();if(kind==="up"&&!nm){amsg("برای ثبت‌نام نام و نام‌خانوادگی را بنویس.","err");return}if(kind==="up")c.options={data:{name:nm}};busy(true,kind);
   try{
     var r=await(kind==="up"?sb.auth.signUp(c):sb.auth.signInWithPassword(c));
     if(r.error){amsg(fe(r.error),"err");return}
