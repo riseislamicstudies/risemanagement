@@ -52,10 +52,12 @@ input[name=due]{flex:1 1 140px;min-width:0}
 input[type=checkbox]{padding:0;width:auto}
 .cm{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:14px;word-break:break-word}
 .cm small{color:var(--mute);display:block}
-#msg{z-index:20;position:fixed;inset-inline:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--text);color:var(--bg);padding:10px 14px;border-radius:10px;display:none;font-size:14px}
+#msg{z-index:50;position:fixed;inset-inline:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--text);color:var(--bg);padding:10px 14px;border-radius:10px;display:none;font-size:14px}
 #au,#jn{position:fixed;inset:0;background:var(--bg);z-index:30;display:flex;align-items:center;justify-content:center;padding:16px}
 #au[hidden],#jn[hidden],#iw[hidden]{display:none}
 #au .sheet,#jn .sheet{border-radius:16px;max-width:380px}
+button:disabled{opacity:.6;cursor:wait}
+#am{min-height:1.6em}#am.err{color:var(--hi)}#am.ok{color:var(--accent)}
 #lo,#iv{margin-top:6px;margin-inline-end:6px;padding:3px 10px;font-size:13px}
 </style>
 <meta name="robots" content="noindex">
@@ -108,7 +110,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
   <textarea id="ta" rows="6" dir="auto"></textarea>
   <div style="display:flex;gap:8px"><button class="add" type="button" id="go">بازیابی از متن</button><button type="button" id="rx">بستن</button></div>
 </div></div>
-<div id="au" hidden><form id="af" class="sheet"><h1>برد کارها</h1><div class="sub">برای ورود یا ساخت حساب، ایمیل و رمز بنویس.</div><input name="em" type="email" placeholder="ایمیل" required autocomplete="email" dir="ltr"><input name="pw" type="password" placeholder="رمز (حداقل ۶ نویسه)" required minlength="6" autocomplete="current-password" dir="ltr"><div style="display:flex;gap:8px"><button class="add" type="submit">ورود</button><button type="button" id="su">ثبت‌نام</button></div></form></div>
+<div id="au" hidden><form id="af" class="sheet"><h1>برد کارها</h1><div class="sub">برای ورود یا ساخت حساب، ایمیل و رمز بنویس.</div><input name="em" type="email" placeholder="ایمیل" required autocomplete="email" dir="ltr"><input name="pw" type="password" placeholder="رمز (حداقل ۶ نویسه)" required minlength="6" autocomplete="current-password" dir="ltr"><div id="am" class="sub" role="status" aria-live="polite"></div><div style="display:flex;gap:8px"><button class="add" id="si" type="submit">ورود</button><button type="button" id="su">ثبت‌نام</button></div></form></div>
 <div id="jn" hidden><div class="sheet"><h3>هنوز عضو تیمی نیستی</h3><div class="sub">کد یا لینک دعوت داری؟ اینجا بچسبان:</div><input id="jc" dir="ltr" placeholder="لینک یا کد دعوت"><button class="add" type="button" id="jb">پیوستن به تیم</button><div class="sub">یا یک تیم جدید بساز:</div><input id="wn" placeholder="اسم تیم" maxlength="60"><button type="button" id="wb">ساخت تیم</button></div></div>
 <div id="iw" hidden><div class="sheet"><h3>اعضای تیم</h3><div id="ml"></div><h3>دعوت هم‌تیمی</h3><div class="sub">لینک را برای هم‌تیمی بفرست. با ثبت‌نام یا ورود از طریق آن عضو می‌شود. لینک ۱۴ روز اعتبار دارد.</div><input id="il" readonly dir="ltr" placeholder="ابتدا لینک بساز"><div style="display:flex;gap:8px"><button class="add" id="ib" type="button">ساخت لینک دعوت</button><button id="ic" type="button">کپی</button><button id="ix" type="button">بستن</button></div></div></div>
 <datalist id="pl"></datalist>
@@ -228,10 +230,18 @@ $("#ib").onclick=async function(){var r=await sb.from("invites").insert({workspa
 $("#ic").onclick=function(){var i=$("#il");if(!i.value)return;i.select();try{navigator.clipboard.writeText(i.value)}catch(e){}try{document.execCommand("copy")}catch(e){}toast("کپی شد")};
 $("#ix").onclick=function(){$("#iw").hidden=true};
 $("#iw").onclick=function(e){if(e.target===this)this.hidden=true};
-function auth(kind){
-  var f=$("#af"),c={email:f.em.value.trim(),password:f.pw.value};
-  var p=kind==="up"?sb.auth.signUp(c):sb.auth.signInWithPassword(c);
-  p.then(function(r){if(r.error){toast(r.error.message);return}if(r.data.session)enter();else toast("ایمیل تأیید فرستاده شد؛ لینکش را بزن و بعد وارد شو")});
+function amsg(t,k){var m=$("#am");m.textContent=t;m.className="sub "+(k||"")}
+function fe(e){var m=(e.message||"").toLowerCase();if(m.indexOf("invalid login")>=0)return"ایمیل یا رمز اشتباه است.";if(m.indexOf("already")>=0)return"این ایمیل قبلاً ثبت‌نام کرده؛ با «ورود» وارد شو.";if(m.indexOf("not confirmed")>=0)return"ایمیل هنوز تأیید نشده؛ لینک ایمیل را بزن.";if(m.indexOf("rate")>=0)return"تلاش‌ها زیاد بود؛ چند دقیقه بعد دوباره امتحان کن.";if(m.indexOf("password")>=0)return"رمز باید حداقل ۶ نویسه باشد.";return e.message||"خطای ناشناخته"}
+function busy(on,kind){var si=$("#si"),su=$("#su");si.disabled=su.disabled=on;if(on){amsg(kind==="up"?"در حال ساخت حساب…":"در حال ورود…");(kind==="up"?su:si).textContent="صبر کن…"}else{si.textContent="ورود";su.textContent="ثبت‌نام"}}
+async function auth(kind){
+  var f=$("#af"),c={email:f.em.value.trim(),password:f.pw.value};busy(true,kind);
+  try{
+    var r=await(kind==="up"?sb.auth.signUp(c):sb.auth.signInWithPassword(c));
+    if(r.error){amsg(fe(r.error),"err");return}
+    if(r.data.session){amsg("وارد شدی. در حال بارگذاری…","ok");await enter()}
+    else amsg("ایمیل تأیید فرستاده شد. لینکش را بزن و بعد وارد شو.","ok");
+  }catch(e){amsg("ارتباط با سرور برقرار نشد. اینترنت را بررسی و دوباره تلاش کن.","err")}
+  finally{busy(false)}
 }
 (async function(){
   if(!window.supabase){$("#st").textContent="کتابخانه بارگذاری نشد";return}
