@@ -42,7 +42,7 @@ input[name=due]{flex:1 1 140px;min-width:0}
 #chips{display:flex;gap:6px;padding:0 16px 8px;overflow-x:auto}#chips:empty{display:none}
 .chip{white-space:nowrap;padding:5px 12px;border-radius:999px;cursor:pointer}
 .chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
-#ov,#rv,#iw,#dp,#me,#pn{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;z-index:5}
+#ov,#rv,#iw,#dp,#me,#pn,#rp{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;z-index:5}
 #ov[hidden],#rv[hidden]{display:none}
 .sheet textarea{font:inherit;color:var(--text);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 12px;width:100%}
 .sheet{background:var(--bg);width:100%;max-width:520px;max-height:90%;overflow:auto;border-radius:16px 16px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px}
@@ -54,13 +54,14 @@ input[type=checkbox]{padding:0;width:auto}
 .cm small{color:var(--mute);display:block}
 #msg{z-index:50;position:fixed;inset-inline:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--text);color:var(--bg);padding:10px 14px;border-radius:10px;display:none;font-size:14px}
 #au,#jn{position:fixed;inset:0;background:var(--bg);z-index:30;display:flex;align-items:center;justify-content:center;padding:16px}
-#au[hidden],#jn[hidden],#iw[hidden],#dp[hidden],#me[hidden],#pn[hidden]{display:none}
+#au[hidden],#jn[hidden],#iw[hidden],#dp[hidden],#me[hidden],#pn[hidden],#rp[hidden]{display:none}
 #au .sheet,#jn .sheet{border-radius:16px;max-width:380px}
 button:disabled{opacity:.6;cursor:wait}
 #am{min-height:1.6em}#am.err{color:var(--hi)}#am.ok{color:var(--accent)}
 #lo,#iv{margin-top:6px;margin-inline-end:6px;padding:3px 10px;font-size:13px}
 #dp{z-index:10}
-#pn{z-index:40}
+#pn,#rp{z-index:40}
+.lnk{border:0;background:none;color:var(--accent);padding:0;text-align:start;cursor:pointer;font-size:13px}
 select[name=who]{flex:1 1 120px;min-width:0}
 input[type=range]{padding:0}
 .card:hover{border-color:var(--accent)}
@@ -119,6 +120,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 <main class="cols" id="cols"></main>
 <section id="mv" hidden><button class="add" type="button" id="mnew">+ صورتجلسه جدید</button><div id="mlist"></div></section>
 <div id="me" hidden><div class="sheet"><h3 id="mt"></h3><div id="mfa" class="fg"></div><h3>مصوبات</h3><div id="rl"></div><button type="button" id="ma">+ افزودن مصوبه</button><div class="sub">بعد از «نهایی کردن»، هر مصوبه خودکار به‌صورت یک کار در برد ثبت می‌شود.</div><div id="mfb" class="fg"></div><div id="mn" class="sub"></div><div class="mbt"><button type="button" id="ms">ذخیره پیش‌نویس</button><button class="add" type="button" id="mz">نهایی کردن و ساخت کارها</button><button type="button" id="md">حذف</button><button type="button" id="mx">بستن</button></div></div></div>
+<div id="rp" hidden><div class="sheet"><h3>رمز جدید</h3><div class="sub">یک رمز جدید با حداقل ۶ نویسه بنویس.</div><input id="rpw" type="password" minlength="6" dir="ltr" autocomplete="new-password" placeholder="رمز جدید"><div id="rpm" class="sub" role="status"></div><div style="display:flex;gap:8px"><button class="add" type="button" id="rps">ذخیره رمز جدید</button><button type="button" id="rpx">بستن</button></div></div></div>
 <div id="pn" hidden><div class="sheet"><h3>نام تو</h3><div class="sub">این نام در فهرست اعضا و انتخاب مسئول کارها نمایش داده می‌شود.</div><input id="pnm" maxlength="60" placeholder="نام و نام‌خانوادگی"><div style="display:flex;gap:8px"><button class="add" type="button" id="pns">ذخیره</button><button type="button" id="pnx">بستن</button></div></div></div>
 <div id="ov" hidden><div class="sheet">
   <form id="ef">
@@ -145,9 +147,9 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
   <textarea id="ta" rows="6" dir="auto"></textarea>
   <div style="display:flex;gap:8px"><button class="add" type="button" id="go">بازیابی از متن</button><button type="button" id="rx">بستن</button></div>
 </div></div>
-<div id="au" hidden><form id="af" class="sheet"><h1>رایزنگار</h1><div class="sub">برای ورود یا ساخت حساب، ایمیل و رمز بنویس.</div><input name="nm" placeholder="نام و نام‌خانوادگی (برای ثبت‌نام)" maxlength="60" autocomplete="name"><input name="em" type="email" placeholder="ایمیل" required autocomplete="email" dir="ltr"><input name="pw" type="password" placeholder="رمز (حداقل ۶ نویسه)" required minlength="6" autocomplete="current-password" dir="ltr"><div id="am" class="sub" role="status" aria-live="polite"></div><div style="display:flex;gap:8px"><button class="add" id="si" type="submit">ورود</button><button type="button" id="su">ثبت‌نام</button></div><div class="ver" dir="ltr">v1.0 · 2026-10-20</div></form></div>
+<div id="au" hidden><form id="af" class="sheet"><h1>رایزنگار</h1><div class="sub">برای ورود یا ساخت حساب، ایمیل و رمز بنویس.</div><input name="nm" placeholder="نام و نام‌خانوادگی (برای ثبت‌نام)" maxlength="60" autocomplete="name"><input name="em" type="email" placeholder="ایمیل" required autocomplete="email" dir="ltr"><input name="pw" type="password" placeholder="رمز (حداقل ۶ نویسه)" required minlength="6" autocomplete="current-password" dir="ltr"><div id="am" class="sub" role="status" aria-live="polite"></div><div style="display:flex;gap:8px"><button class="add" id="si" type="submit">ورود</button><button type="button" id="su">ثبت‌نام</button></div><button type="button" id="fg" class="lnk">رمز را فراموش کرده‌ای؟</button><div class="ver" dir="ltr">v1.1 · 2026-10-20</div></form></div>
 <div id="jn" hidden><div class="sheet"><h3>هنوز عضو تیمی نیستی</h3><div class="sub">کد یا لینک دعوت داری؟ اینجا بچسبان:</div><input id="jc" dir="ltr" placeholder="لینک یا کد دعوت"><button class="add" type="button" id="jb">پیوستن به تیم</button><div class="sub">یا یک تیم جدید بساز:</div><input id="wn" placeholder="اسم تیم" maxlength="60"><button type="button" id="wb">ساخت تیم</button></div></div>
-<div id="iw" hidden><div class="sheet"><div class="sub">نام تو: <b id="mynm"></b> <button type="button" id="rn">تغییر نام</button></div><h3>اعضای تیم</h3><div id="ml"></div><h3>دعوت هم‌تیمی</h3><div class="sub">لینک را برای هم‌تیمی بفرست. با ثبت‌نام یا ورود از طریق آن عضو می‌شود. لینک ۱۴ روز اعتبار دارد.</div><input id="il" readonly dir="ltr" placeholder="ابتدا لینک بساز"><div style="display:flex;gap:8px"><button class="add" id="ib" type="button">ساخت لینک دعوت</button><button id="ic" type="button">کپی</button><button id="ix" type="button">بستن</button></div></div></div>
+<div id="iw" hidden><div class="sheet"><div class="sub">نام تو: <b id="mynm"></b> <button type="button" id="rn">تغییر نام</button> <button type="button" id="cp">تغییر رمز</button></div><h3>اعضای تیم</h3><div id="ml"></div><h3>دعوت هم‌تیمی</h3><div class="sub">لینک را برای هم‌تیمی بفرست. با ثبت‌نام یا ورود از طریق آن عضو می‌شود. لینک ۱۴ روز اعتبار دارد.</div><input id="il" readonly dir="ltr" placeholder="ابتدا لینک بساز"><div style="display:flex;gap:8px"><button class="add" id="ib" type="button">ساخت لینک دعوت</button><button id="ic" type="button">کپی</button><button id="ix" type="button">بستن</button></div><h3 id="ihd" hidden>لینک‌های دعوت فعال</h3><div id="il2" hidden></div></div></div>
 <div id="dp" hidden><div class="sheet"><div class="dh"><button type="button" id="dpp" aria-label="ماه قبل">→</button><b id="dpt"></b><button type="button" id="dpn" aria-label="ماه بعد">←</button></div><div class="dw"><span>ش</span><span>ی</span><span>د</span><span>س</span><span>چ</span><span>پ</span><span>ج</span></div><div id="dpg" class="dg"></div><div style="display:flex;gap:8px"><button type="button" id="dpd">امروز</button><button type="button" id="dpc">پاک کردن</button><button type="button" id="dpx">بستن</button></div></div></div>
 <datalist id="pl"></datalist>
 <div id="msg"></div>
@@ -316,8 +318,15 @@ var pnRes=null;
 function askName(must){return new Promise(function(res){pnRes=res;$("#pnm").value=myName||"";$("#pnx").hidden=!!must;$("#pn").hidden=false})}
 $("#pns").onclick=async function(){var v=$("#pnm").value.trim();if(!v){toast("نام را بنویس");return}var b=this;b.disabled=true;var r=await sb.from("profiles").upsert({user_id:meId,name:v});b.disabled=false;if(r.error){toast("ذخیره نشد: "+r.error.message);return}myName=v;$("#pn").hidden=true;if(pnRes){pnRes(v);pnRes=null}};
 $("#pnx").onclick=function(){$("#pn").hidden=true;if(pnRes){pnRes(myName);pnRes=null}};
-$("#rn").onclick=async function(){await askName(false);$("#mynm").textContent=myName;loadMem()};
+$("#rn").onclick=async function(){await askName(false);$("#mynm").textContent=myName;loadMem();drawMembers()};
 async function ensureProfile(){var u=(await sb.auth.getUser()).data.user;meId=u.id;var r=await sb.from("profiles").select("name").eq("user_id",u.id).maybeSingle(),nm=r.data&&r.data.name;if(!nm){nm=(u.user_metadata&&u.user_metadata.name)||"";if(nm)await sb.from("profiles").upsert({user_id:u.id,name:nm})}myName=nm;if(!nm)await askName(true)}
+var recov=false;
+function rpmsg(t,k){var m=$("#rpm");m.textContent=t;m.className="sub "+(k||"")}
+function showReset(opt){recov=!opt;$("#rpw").value="";rpmsg("");$("#rpx").hidden=!opt;$("#rp").hidden=false}
+$("#cp").onclick=function(){showReset(true)};
+$("#rpx").onclick=function(){$("#rp").hidden=true};
+$("#rps").onclick=async function(){var v=$("#rpw").value;if(v.length<6){rpmsg("رمز باید حداقل ۶ نویسه باشد.","err");return}var b=this;b.disabled=true;b.textContent="در حال ذخیره…";rpmsg("");try{var r=await sb.auth.updateUser({password:v});if(r.error){rpmsg(fe(r.error),"err");return}toast("رمز عوض شد");history.replaceState(null,"",location.pathname);$("#rp").hidden=true;if(recov){recov=false;enter()}}catch(e){rpmsg("ارتباط با سرور برقرار نشد.","err")}finally{b.disabled=false;b.textContent="ذخیره رمز جدید"}};
+$("#fg").onclick=async function(){var em=$("#af").elements.em.value.trim();if(!em){amsg("ایمیلت را بنویس و دوباره بزن.","err");return}var b=this;b.disabled=true;amsg("در حال ارسال لینک بازیابی…");try{var r=await sb.auth.resetPasswordForEmail(em,{redirectTo:location.origin+location.pathname});if(r.error)amsg(fe(r.error),"err");else amsg("اگر این ایمیل ثبت‌نام شده باشد، لینک تغییر رمز برایش فرستاده شد. پوشه‌ی هرزنامه را هم ببین.","ok")}catch(e){amsg("ارتباط با سرور برقرار نشد.","err")}finally{b.disabled=false}};
 var pref=null;
 function jcode(){var m=location.search.match(/[?&]join=([0-9a-f]+)/);if(m)return m[1];try{return localStorage.getItem("joinCode")}catch(e){return null}}
 async function loadWs(){var q=sb.from("workspaces").select("id,name");if(pref)q=q.eq("id",pref);var w=chk(await q.order("created_at",{ascending:true}).limit(1));return w.data[0]||null}
@@ -338,8 +347,35 @@ async function enter(){
 }
 $("#jb").onclick=async function(){var v=$("#jc").value.trim(),m=v.match(/join=([0-9a-f]+)/),c=m?m[1]:v;try{var r=chk(await sb.rpc("join_workspace",{p_code:c}));pref=r.data;var w=await loadWs();$("#jn").hidden=true;begin(w)}catch(e){toast("کد نامعتبر یا منقضی است")}};
 $("#wb").onclick=async function(){try{var w=chk(await sb.from("workspaces").insert({name:$("#wn").value.trim()||"تیم من"}).select("id,name"));$("#jn").hidden=true;begin(w.data[0])}catch(e){toast("خطا: "+(e.message||e.code))}};
-$("#iv").onclick=async function(){$("#iw").hidden=false;$("#mynm").textContent=myName;var l=$("#ml");l.textContent="";var r=await sb.rpc("list_members",{ws:wsId});if(r.error){l.textContent="خطا در خواندن اعضا";return}r.data.forEach(function(m){var d=document.createElement("div");d.className="cm";d.dir="auto";d.textContent=(m.name||"بدون نام")+" · "+m.email+(m.role==="admin"?" (ادمین)":"");l.appendChild(d)})};
-$("#ib").onclick=async function(){var r=await sb.from("invites").insert({workspace_id:wsId}).select("code");if(r.error||!r.data.length){toast("فقط ادمین می‌تواند دعوت بسازد");return}$("#il").value=location.origin+location.pathname+"?join="+r.data[0].code};
+var isAdmin=false;
+function errM(m){m=m||"";if(m.indexOf("last_admin")>=0)return"تیم باید حداقل یک ادمین داشته باشد.";if(m.indexOf("forbidden")>=0)return"فقط ادمین می‌تواند این کار را بکند.";return m||"خطا"}
+function inviteUrl(c){return location.origin+location.pathname+"?join="+c}
+function copyText(t){try{navigator.clipboard.writeText(t)}catch(e){}toast("کپی شد")}
+async function mrpc(fn,args,leave){var r=await sb.rpc(fn,args);if(r.error){toast(errM(r.error.message));return}if(leave){location.reload();return}drawMembers();loadMem()}
+function small(b){b.style.padding="3px 10px";return b}
+async function drawMembers(){
+  $("#mynm").textContent=myName;var l=$("#ml");l.textContent="";
+  var r=await sb.rpc("list_members",{ws:wsId});if(r.error){l.textContent="خطا در خواندن اعضا";return}
+  var me=r.data.find(function(m){return m.user_id===meId});isAdmin=!!me&&me.role==="admin";
+  r.data.forEach(function(m){
+    var d=document.createElement("div");d.className="cm";d.style.cssText="display:flex;flex-wrap:wrap;gap:6px;align-items:center";
+    var s=document.createElement("span");s.dir="auto";s.style.flex="1 1 200px";s.textContent=(m.name||"بدون نام")+" · "+m.email+(m.role==="admin"?" (ادمین)":"");d.appendChild(s);
+    var self=m.user_id===meId;
+    if(isAdmin&&!self)d.appendChild(small(btn(m.role==="admin"?"تبدیل به عضو":"ادمین کن",function(){mrpc("set_member_role",{p_ws:wsId,p_user:m.user_id,p_role:m.role==="admin"?"member":"admin"})})));
+    if(isAdmin||self){var lb=self?"ترک تیم":"حذف",b2=small(btn(lb,function(){two(b2,lb,function(){mrpc("remove_member",{p_ws:wsId,p_user:m.user_id},self)})}));d.appendChild(b2)}
+    l.appendChild(d)});
+  drawInvites();
+}
+async function drawInvites(){
+  var b=$("#il2");$("#ihd").hidden=b.hidden=!isAdmin;b.textContent="";if(!isAdmin)return;
+  var r=await sb.from("invites").select("code,expires_at").eq("workspace_id",wsId).gt("expires_at",new Date().toISOString()).order("expires_at",{ascending:false});
+  if(r.error)return;if(!r.data.length){b.textContent="لینک دعوت فعالی نیست.";return}
+  r.data.forEach(function(v){var d=document.createElement("div");d.className="cm";d.style.cssText="display:flex;gap:6px;align-items:center";var s=document.createElement("span");s.style.flex="1";s.textContent="دعوت تا "+iso2j(v.expires_at.slice(0,10));
+    d.appendChild(s);d.appendChild(small(btn("کپی لینک",function(){copyText(inviteUrl(v.code))})));
+    var x=small(btn("لغو",function(){two(x,"لغو",async function(){var q=await sb.from("invites").delete().eq("code",v.code).select("code");if(q.error||!q.data.length)toast("لغو نشد");else{toast("لینک لغو شد");drawInvites()}})}));d.appendChild(x);b.appendChild(d)});
+}
+$("#iv").onclick=function(){$("#iw").hidden=false;drawMembers()};
+$("#ib").onclick=async function(){var r=await sb.from("invites").insert({workspace_id:wsId}).select("code");if(r.error||!r.data.length){toast("فقط ادمین می‌تواند دعوت بسازد");return}$("#il").value=location.origin+location.pathname+"?join="+r.data[0].code;drawInvites()};
 $("#ic").onclick=function(){var i=$("#il");if(!i.value)return;i.select();try{navigator.clipboard.writeText(i.value)}catch(e){}try{document.execCommand("copy")}catch(e){}toast("کپی شد")};
 $("#ix").onclick=function(){$("#iw").hidden=true};
 $("#iw").onclick=function(e){if(e.target===this)this.hidden=true};
@@ -358,12 +394,12 @@ async function auth(kind){
 }
 (async function(){
   if(!window.supabase){$("#st").textContent="کتابخانه بارگذاری نشد";return}
-  sb=supabase.createClient(SB_URL,SB_KEY);try{var jm=location.search.match(/[?&]join=([0-9a-f]+)/);if(jm)localStorage.setItem("joinCode",jm[1])}catch(e){}
+  var REC=/type=recovery/.test(location.hash),HERR=/error_description/.test(location.hash);sb=supabase.createClient(SB_URL,SB_KEY);try{var jm=location.search.match(/[?&]join=([0-9a-f]+)/);if(jm)localStorage.setItem("joinCode",jm[1])}catch(e){}
   $("#af").onsubmit=function(e){e.preventDefault();auth("in")};
   $("#su").onclick=function(){if($("#af").reportValidity())auth("up")};
   $("#lo").onclick=async function(){await sb.auth.signOut();location.reload()};
   var s=(await sb.auth.getSession()).data.session;
-  if(s)enter();else{$("#au").hidden=false;$("#st").textContent="وارد نشده‌ای"}
+  if(s&&REC){$("#au").hidden=false;showReset(false)}else if(s)enter();else{if(HERR)setTimeout(function(){amsg("لینک منقضی شده یا نامعتبر است؛ دوباره «فراموشی رمز» را بزن.","err")},0);$("#au").hidden=false;$("#st").textContent="وارد نشده‌ای"}
 })();
 </script>
 </body>
