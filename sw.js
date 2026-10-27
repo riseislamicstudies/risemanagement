@@ -1,5 +1,5 @@
 /* Risenegar service worker: فقط «پوسته‌ی برنامه» را کش می‌کند. داده‌ها (Supabase) هرگز کش نمی‌شوند. */
-var CACHE = "risenegar-v1.7";
+var CACHE = "risenegar-v1.8";
 var SHELL = ["./", "index.html", "manifest.json", "icon-192.png", "icon-512.png", "icon-maskable-512.png"];
 self.addEventListener("install", function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) {
