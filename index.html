@@ -761,6 +761,12 @@ function setView(v){view=v;animNext=true;animMine=true;$("#cols").style.display=
 document.querySelectorAll("#nv .ni").forEach(function(c){c.onclick=function(){setView(c.dataset.v)}});
 function openSb(){$("#sb").classList.add("open");$("#sbx").classList.add("open")}
 function closeSb(){$("#sb").classList.remove("open");$("#sbx").classList.remove("open")}
+/* کشیدن انگشت به چپ (وقتی دیگر چیزی برای اسکرول به چپ نیست) منوی سمت راست را باز می‌کند */
+(function(){var x0=0,y0=0,t0=0,ok=false;
+function canLeft(e){for(var n=e;n&&n!==document.body&&n.nodeType===1;n=n.parentNode){if(n.tagName==="INPUT"&&n.type==="range")return true;if(n.scrollWidth>n.clientWidth+1){var ox=getComputedStyle(n).overflowX;if(ox==="auto"||ox==="scroll"){var min=-(n.scrollWidth-n.clientWidth);if(n.scrollLeft>min+1&&n.scrollLeft<=1)return true;if(n.scrollLeft>1&&n.scrollLeft<n.scrollWidth-n.clientWidth-1)return true}}}return false}
+document.addEventListener("touchstart",function(e){var t=e.touches[0];ok=e.touches.length===1&&matchMedia("(max-width:820px)").matches&&!$("#sb").classList.contains("open")&&!canLeft(e.target);x0=t.clientX;y0=t.clientY;t0=Date.now()},{passive:true});
+document.addEventListener("touchend",function(e){if(!ok)return;ok=false;var t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;if(dx<-70&&Math.abs(dx)>2*Math.abs(dy)&&Date.now()-t0<700&&!document.querySelector("#ov:not([hidden]),#me:not([hidden]),#rv:not([hidden]),#iw:not([hidden]),#nt:not([hidden]),#jn:not([hidden]),#pp:not([hidden]),#dp:not([hidden])"))openSb()},{passive:true});
+})();
 $("#hb").onclick=openSb;$("#sbx").onclick=closeSb;
 function ini(n){return String(n||"").trim().split(/\s+/).slice(0,2).map(function(x){return x.charAt(0)}).join("\u200c")}
 function hue(n){var h=0;String(n).split("").forEach(function(c){h=(h*31+c.charCodeAt(0))%360});return h}
