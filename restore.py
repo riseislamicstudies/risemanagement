@@ -26,7 +26,17 @@ import urllib.parse
 import urllib.request
 
 # ترتیب مهم است: اول چیزهایی که بقیه به آن‌ها وابسته‌اند
-ORDER = ["workspaces", "members", "profiles", "invites", "meetings", "tasks"]
+ORDER = ["workspaces", "members", "profiles", "invites", "projects", "contacts", "meetings", "tasks",
+         "attachments", "pub_issues", "pub_items", "chat_groups", "chat_members", "chat_messages"]
+# جدول‌هایی که با SQLهای ۹ تا ۱۷ آمده‌اند؛ اگر در مقصد نبودند رد می‌شوند (نه خطا)
+OPTIONAL = {"projects", "contacts", "attachments", "pub_issues", "pub_items", "chat_groups", "chat_members", "chat_messages"}
+# ستون‌هایی که شناسه‌ی کاربر دارند: (ستون، لازم است؟) — اگر حساب نبود: لازم → ردیف رد می‌شود، وگرنه خالی
+USERCOLS = {
+    "projects": [("created_by", False)], "contacts": [("created_by", False)],
+    "attachments": [("created_by", True)], "pub_issues": [("created_by", False)],
+    "chat_groups": [("created_by", False)], "chat_members": [("user_id", True)],
+    "chat_messages": [("user_id", False)],
+}
 KEYS = {
     "workspaces": ["id"],
     "members": ["workspace_id", "user_id"],
@@ -34,6 +44,8 @@ KEYS = {
     "invites": ["code"],
     "meetings": ["id"],
     "tasks": ["id"],
+    "projects": ["id"], "contacts": ["id"], "attachments": ["id"], "pub_issues": ["id"], "pub_items": ["id"],
+    "chat_groups": ["id"], "chat_members": ["group_id", "user_id"], "chat_messages": ["id"],
 }
 PAGE = 1000
 CHUNK = 200
@@ -49,11 +61,13 @@ class Api:
         self.url = url.rstrip("/")
         self.key = key
 
-    def call(self, path, method="GET", body=None, extra=None):
+    def call(self, path, method="GET", body=None, extra=None, rawbody=None):
         headers = {"apikey": self.key}
         headers.update(extra or {})
         data = None
-        if body is not None:
+        if rawbody is not None:
+            data = rawbody
+        elif body is not None:
             data = json.dumps(body).encode()
             headers["Content-Type"] = "application/json"
         req = urllib.request.Request(self.url + path, data=data, headers=headers, method=method)
@@ -234,6 +248,7 @@ def plan(api, backup, umap, tables, only_ws, skipped):
         if m.get("role") == "admin":
             admins.setdefault(m["workspace_id"], []).append(m["user_id"])
 
+    gws = {g["id"]: g["workspace_id"] for g in bt.get("chat_groups", [])}
     for t in ORDER:
         if t not in tables or t not in bt:
             continue
@@ -241,6 +256,10 @@ def plan(api, backup, umap, tables, only_ws, skipped):
         for r in bt[t]:
             r = dict(r)
             ws = r.get("id") if t == "workspaces" else r.get("workspace_id")
+            if t == "chat_members":  # این جدول workspace_id ندارد؛ از روی گروه پیدا می‌شود
+                ws = gws.get(r.get("group_id"))
+                r["workspace_id"] = ws  # فقط برای بررسی‌های پایین
+
             if only_ws and t != "profiles" and ws != only_ws:
                 continue
             if t == "profiles" and only_ws:
@@ -271,6 +290,21 @@ def plan(api, backup, umap, tables, only_ws, skipped):
                     pass
             if t in ("meetings", "tasks") and r.get("created_by") in umap:
                 r["created_by"] = umap[r["created_by"]]
+            drop = False
+            for col, need in USERCOLS.get(t, []):
+                if r.get(col) in umap:
+                    r[col] = umap[r[col]]
+                elif need:
+                    skipped[t + ": account missing"] = skipped.get(t + ": account missing", 0) + 1
+                    drop = True
+                else:
+                    r[col] = None
+            if drop:
+                continue
+            if t == "tasks" and r.get("co_assignee_ids"):
+                r["co_assignee_ids"] = [umap[x] for x in r["co_assignee_ids"] if x in umap]
+            if t == "chat_messages" and r.get("mentions"):
+                r["mentions"] = [umap[x] for x in r["mentions"] if x in umap]
             if t == "meetings":
                 remap_meeting(r, umap, names)
             if t == "tasks":
@@ -283,13 +317,21 @@ def plan(api, backup, umap, tables, only_ws, skipped):
             }:
                 skipped[t + ": workspace missing"] = skipped.get(t + ": workspace missing", 0) + 1
                 continue
+            if t == "chat_members":
+                r.pop("workspace_id", None)
             rows.append(r)
 
         cols = sorted({c for r in rows for c in r})
         have = {}
         if rows:
-            for e in api.fetch_all(t, "*", ",".join(KEYS[t])):
-                have[key_of(t, e)] = e
+            try:
+                for e in api.fetch_all(t, "*", ",".join(KEYS[t])):
+                    have[key_of(t, e)] = e
+            except Fail as ex:
+                if t in OPTIONAL and ("PGRST205" in str(ex) or "does not exist" in str(ex) or "404" in str(ex)):
+                    skipped[t + ": table missing in target (run its SQL first)"] = len(rows)
+                    continue
+                raise
         new, same, diff = [], 0, []
         for r in rows:
             e = have.get(key_of(t, r))
@@ -317,6 +359,8 @@ def write_batches(api, t, rows, overwrite):
             msg = str(e)
             if "assignee_id" in msg and ("column" in msg or "PGRST204" in msg):
                 raise Fail(msg + "\n  -> the target database has not run supabase-update-6.sql yet. Run it first, then retry.")
+            if "co_assignee_ids" in msg and ("column" in msg or "PGRST204" in msg):
+                raise Fail(msg + "\n  -> the target database has not run supabase-update-18.sql yet. Run it first, then retry.")
             if "archived" in msg and ("column" in msg or "PGRST204" in msg):
                 raise Fail(msg + "\n  -> the target database has not run supabase-update-8.sql yet. Run it first, then retry.")
             if any(c in msg for c in ("chair_id", "secretary_id", "attendee_ids", "absentee_ids")) and ("column" in msg or "PGRST204" in msg):
@@ -324,6 +368,38 @@ def write_batches(api, t, rows, overwrite):
             if "notifications" in msg and "does not exist" in msg:
                 raise Fail(msg + "\n  -> run supabase-update-5.sql / update-6.sql on the target first.")
             raise
+
+
+def upload_files(api, backup, folder, apply_):
+    """فایل‌های پوشه‌ی files/ ریپوی بکاپ (files/<bucket>/<path>) را اگر در Storage مقصد نبودند آپلود می‌کند."""
+    import mimetypes
+    bt = backup["tables"]
+    items = [("attachments", r.get("path"), r.get("mime")) for r in bt.get("attachments", [])]
+    items += [("chat", r.get("file_path"), r.get("file_mime")) for r in bt.get("chat_messages", [])]
+    done = miss = have = 0
+    for bucket, path, mime in items:
+        if not path:
+            continue
+        src = os.path.join(folder, bucket, *path.split("/"))
+        if not os.path.isfile(src):
+            miss += 1
+            continue
+        if not apply_:
+            done += 1
+            continue
+        with open(src, "rb") as fh:
+            blob = fh.read()
+        enc = urllib.parse.quote(path, safe="/")
+        try:
+            api.call("/storage/v1/object/%s/%s" % (bucket, enc), method="POST", rawbody=blob,
+                     extra={"Content-Type": mime or mimetypes.guess_type(path)[0] or "application/octet-stream", "x-upsert": "false"})
+            done += 1
+        except Fail as e:
+            if "already exists" in str(e) or "Duplicate" in str(e) or "HTTP 409" in str(e):
+                have += 1
+            else:
+                print("  upload failed:", bucket, path, str(e)[:160])
+    print("Files: %s=%d, already there=%d, not in folder=%d" % ("uploaded" if apply_ else "to upload", done, have, miss))
 
 
 # ---------------------------------------------------------------- main
@@ -338,6 +414,7 @@ def main():
     ap.add_argument("--workspace", help="restore only this workspace id")
     ap.add_argument("--create-users", action="store_true",
                     help="create accounts that exist in the backup but not in the target (for a NEW empty project). Temporary passwords are saved to restored-users.txt")
+    ap.add_argument("--files", metavar="DIR", help="also upload attachment/chat files from this folder (the backup repo's files/ folder) that are missing in Storage")
     ap.add_argument("--yes", action="store_true", help="do not ask for confirmation")
     a = ap.parse_args()
 
@@ -383,6 +460,8 @@ def main():
         if not a.apply:
             would = sum(len(p["new"]) + (len(p["diff"]) if a.mode == "overwrite" else 0) for p in plans.values())
             print("\nDry-run finished: %d rows would be written. Add --apply to do it." % would)
+            if a.files:
+                upload_files(api, backup, a.files, False)
             if a.mode == "missing" and any(p["diff"] for p in plans.values()):
                 print("(Some rows differ from the backup because they were edited later; --mode overwrite would reset them.)")
             return 0
@@ -393,10 +472,14 @@ def main():
                 continue
             p = plans[t]
             rows = p["new"] + (p["diff"] if a.mode == "overwrite" else [])
+            if t == "chat_messages":
+                rows.sort(key=lambda r: r.get("created_at") or "")
             if rows:
                 write_batches(api, t, rows, a.mode == "overwrite")
             written[t] = len(rows)
         print("\nDone. Rows written:", ", ".join("%s=%d" % kv for kv in written.items()))
+        if a.files:
+            upload_files(api, backup, a.files, True)
         if temp_pw:
             with open("restored-users.txt", "w", encoding="utf-8") as f:
                 f.write("Temporary passwords for re-created accounts. Hand each one to its owner, then delete this file.\n"
